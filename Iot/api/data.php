@@ -1,0 +1,41 @@
+<?php
+require_once __DIR__ . '/config.php';
+header('Content-Type: application/json');
+
+try {
+    $pdo->exec('CREATE TABLE IF NOT EXISTS sensor_data (
+        id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        mq2 DOUBLE DEFAULT NULL,
+        mq135 DOUBLE DEFAULT NULL,
+        dust DOUBLE DEFAULT NULL,
+        created_at INT UNSIGNED NOT NULL DEFAULT 0,
+        PRIMARY KEY (id),
+        INDEX (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+
+    try { $pdo->exec('ALTER TABLE sensor_data ADD COLUMN mq2 DOUBLE DEFAULT NULL'); } catch (Exception $e) {}
+    try { $pdo->exec('ALTER TABLE sensor_data ADD COLUMN mq135 DOUBLE DEFAULT NULL'); } catch (Exception $e) {}
+
+    $stmt = $pdo->query('SELECT id, COALESCE(mq2, mq135) AS mq2, COALESCE(mq2, mq135) AS mq135, dust, created_at FROM sensor_data ORDER BY id DESC LIMIT 1');
+    $row = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+    $updated = isset($row['created_at']) && is_numeric($row['created_at']) ? intval($row['created_at']) : time();
+
+    echo json_encode([
+        'id' => isset($row['id']) ? intval($row['id']) : null,
+        'mq2' => $row['mq2'] ?? null,
+        'mq135' => $row['mq135'] ?? null,
+        'dust' => $row['dust'] ?? null,
+        'created_at' => isset($row['created_at']) && is_numeric($row['created_at']) ? intval($row['created_at']) : null,
+        'updated' => $updated
+    ]);
+} catch (Exception $e) {
+    echo json_encode([
+        'id' => null,
+        'mq2' => null,
+        'mq135' => null,
+        'dust' => null,
+        'created_at' => null,
+        'updated' => time()
+    ]);
+}
+?>
