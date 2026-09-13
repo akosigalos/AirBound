@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AIR-BOUND — Minimal UI + Auth (Tailwind + PHP / MySQL)
 
 This workspace contains a minimal AIR-BOUND demo with:
@@ -101,3 +102,7 @@ Temporary data for testing:
 - Click `Load Temporary Data`.
 - That inserts a sample PM2.5 / PM10 reading into `readings`.
 - The same sample appears in analytics and can create an alert when above threshold.
+=======
+# AirBound-
+Air Quality Code
+>>>>>>> 04217f4fab22e2cbefde6b057d411175e85fcfb4
