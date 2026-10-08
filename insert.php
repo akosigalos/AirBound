@@ -5,6 +5,7 @@ require_once __DIR__ . '/api/config.php';
 header('Content-Type: text/plain');
 
 try {
+    if (!database_is_sqlite()) {
     $pdo->exec('CREATE TABLE IF NOT EXISTS sensor_data (
         id INT UNSIGNED NOT NULL AUTO_INCREMENT,
         mq2 DOUBLE DEFAULT NULL,
@@ -23,6 +24,7 @@ try {
     try {
         $pdo->exec('ALTER TABLE sensor_data ADD COLUMN mq135 DOUBLE DEFAULT NULL');
     } catch (Exception $e) {
+    }
     }
 
     $mq2Input = $_POST['mq2'] ?? $_GET['mq2'] ?? null;

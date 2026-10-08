@@ -153,7 +153,8 @@ try{
 
     $existingPrediction = null;
     try{
-      $check = $pdo->prepare('SELECT id, predicted_aqi, confidence, prediction_time, created_at FROM predictions WHERE created_at >= FROM_UNIXTIME(?) AND created_at <= FROM_UNIXTIME(?) ORDER BY id DESC LIMIT 1');
+      $dateExpression = database_datetime_from_unix_sql();
+      $check = $pdo->prepare('SELECT id, predicted_aqi, confidence, prediction_time, created_at FROM predictions WHERE created_at >= ' . $dateExpression . ' AND created_at <= ' . $dateExpression . ' ORDER BY id DESC LIMIT 1');
       $check->execute([$cycleStart, $cycleEnd]);
       $existingPrediction = $check->fetch(PDO::FETCH_ASSOC) ?: null;
     }catch(Exception $e){
@@ -172,7 +173,7 @@ try{
 
         if($latestSensorTs && $existingCreatedTs && $latestSensorTs > $existingCreatedTs){
           try{
-            $update = $pdo->prepare('UPDATE predictions SET predicted_aqi = ?, confidence = ?, prediction_time = ?, created_at = FROM_UNIXTIME(?) WHERE id = ?');
+            $update = $pdo->prepare('UPDATE predictions SET predicted_aqi = ?, confidence = ?, prediction_time = ?, created_at = ' . database_datetime_from_unix_sql() . ' WHERE id = ?');
             $update->execute([$predictionPayload['predicted_aqi'], $predictionPayload['confidence'], $predictionPayload['prediction_time'], $latestSensorTs, intval($existingPrediction['id'])]);
             $predictionWasPersisted = true;
             $savedPrediction = [

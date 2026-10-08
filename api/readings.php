@@ -4,6 +4,7 @@ header('Content-Type: application/json');
 
 // GET params: start (unix), end (unix), device_id, limit
 try{
+  if (!database_is_sqlite()) {
   $pdo->exec('CREATE TABLE IF NOT EXISTS devices (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(160) NOT NULL,
@@ -31,6 +32,7 @@ try{
 
   try{ $pdo->exec('ALTER TABLE readings ADD COLUMN co DECIMAL(10,4) DEFAULT NULL'); }catch(Exception $e){}
   try{ $pdo->exec('ALTER TABLE readings ADD COLUMN no2 DECIMAL(8,3) DEFAULT NULL'); }catch(Exception $e){}
+  }
 
   $now = time();
   $start = isset($_GET['start']) && is_numeric($_GET['start']) ? intval($_GET['start']) : ($now - 86400); // default last 24h

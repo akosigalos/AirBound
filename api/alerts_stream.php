@@ -8,6 +8,7 @@ set_time_limit(0);
 ignore_user_abort(true);
 
 try{
+  if(!database_is_sqlite()){
   $pdo->exec('CREATE TABLE IF NOT EXISTS devices (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(160) NOT NULL,
@@ -40,6 +41,7 @@ try{
     INDEX (device_id),
     INDEX (pollutant)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+  }
 }catch(Exception $e){}
 
 $lastId = isset($_GET['lastId']) && is_numeric($_GET['lastId']) ? intval($_GET['lastId']) : null;

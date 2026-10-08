@@ -6,6 +6,7 @@ session_start();
 if(!isset($_SESSION['user_id'])){ http_response_code(401); echo json_encode(['success'=>false,'error'=>'Unauthorized']); exit; }
 
 try{
+  if (!database_is_sqlite()) {
   $pdo->exec('CREATE TABLE IF NOT EXISTS sensor_data (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     mq135 DOUBLE DEFAULT NULL,
@@ -35,6 +36,7 @@ try{
     INDEX (device_id),
     INDEX (pollutant)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+  }
 
   $lastSensorId = isset($_GET['last_sensor_id']) && is_numeric($_GET['last_sensor_id']) ? intval($_GET['last_sensor_id']) : 0;
   $limit = 10;

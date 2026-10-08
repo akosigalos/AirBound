@@ -31,11 +31,10 @@ $stmt->execute([$email]);
 if($stmt->fetch()) send_json(['success'=>false,'error'=>'Email already registered']);
 
 $hash = password_hash($password, PASSWORD_DEFAULT);
-$stmt = $pdo->prepare('INSERT INTO users (name,email,password_hash,created_at) VALUES (?, ?, ?, NOW())');
+$stmt = $pdo->prepare('INSERT INTO users (name,email,password_hash,created_at) VALUES (?, ?, ?, ?)');
 try{
-  $stmt->execute([$name,$email,$hash]);
+  $stmt->execute([$name,$email,$hash,date('Y-m-d H:i:s')]);
   send_json(['success'=>true]);
 }catch(Exception $e){
   send_json(['success'=>false,'error'=>'Failed to register']);
 }
-  

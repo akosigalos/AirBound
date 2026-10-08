@@ -8,6 +8,7 @@ set_time_limit(0);
 ignore_user_abort(true);
 
 try{
+  if (!database_is_sqlite()) {
   $pdo->exec('CREATE TABLE IF NOT EXISTS devices (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(160) NOT NULL,
@@ -34,6 +35,7 @@ try{
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
   try{ $pdo->exec('ALTER TABLE readings ADD COLUMN co DECIMAL(10,4) DEFAULT NULL'); }catch(Exception $e){}
   try{ $pdo->exec('ALTER TABLE readings ADD COLUMN no2 DECIMAL(8,3) DEFAULT NULL'); }catch(Exception $e){}
+  }
 }catch(Exception $e){}
 
 $lastId = isset($_GET['lastId']) && is_numeric($_GET['lastId']) ? intval($_GET['lastId']) : null;

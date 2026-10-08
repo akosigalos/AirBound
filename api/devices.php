@@ -5,6 +5,7 @@ header('Content-Type: application/json');
 $method = $_SERVER['REQUEST_METHOD'];
 try{
   if($method === 'GET'){
+    if (!database_is_sqlite()) {
     $pdo->exec('CREATE TABLE IF NOT EXISTS devices (
       id INT UNSIGNED NOT NULL AUTO_INCREMENT,
       name VARCHAR(160) NOT NULL,
@@ -16,6 +17,7 @@ try{
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+    }
 
     $pdo->exec('CREATE TABLE IF NOT EXISTS readings (
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -35,7 +37,7 @@ try{
     $stmt = $pdo->query($sql);
     $devices = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 
-    if(empty($devices)){
+    if(empty($devices) && !database_is_sqlite()){
       try{
         $legacy = new PDO('mysql:host=127.0.0.1;dbname=airbound;charset=utf8mb4', 'root', '', [
           PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

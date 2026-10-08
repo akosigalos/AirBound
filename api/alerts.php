@@ -4,6 +4,7 @@ header('Content-Type: application/json');
 
 $method = $_SERVER['REQUEST_METHOD'];
 try{
+  if(!database_is_sqlite()){
   $pdo->exec('CREATE TABLE IF NOT EXISTS devices (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(160) NOT NULL,
@@ -36,6 +37,7 @@ try{
     INDEX (device_id),
     INDEX (pollutant)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+  }
 
   if($method === 'GET'){
     $start = isset($_GET['start']) && is_numeric($_GET['start']) ? intval($_GET['start']) : null;

@@ -55,7 +55,7 @@ try{
 
   // Also persist a lightweight row for the prediction pipeline so
   // `api/predictions.php` (which reads `sensor_data`) sees recent device values.
-  try{
+  if (!database_is_sqlite()) try{
     $pdo->exec('CREATE TABLE IF NOT EXISTS sensor_data (
       id INT UNSIGNED NOT NULL AUTO_INCREMENT,
       mq2 DOUBLE DEFAULT NULL,

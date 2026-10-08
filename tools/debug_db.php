@@ -2,7 +2,7 @@
 require __DIR__ . '/../api/config.php';
 
 echo 'DB_NAME=' . $DB_NAME . PHP_EOL;
-$stmt = $pdo->query('SHOW TABLES');
+$stmt = $pdo->query(database_is_sqlite() ? "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name" : 'SHOW TABLES');
 $tables = [];
 while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
     $tables[] = $row[0];

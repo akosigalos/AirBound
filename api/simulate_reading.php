@@ -40,60 +40,7 @@ function timeBasedDrift($now, $deviceId, $offset, $span, $precision = 1){
 }
 
 function ensureSimulationSchema(PDO $pdo){
-  $pdo->exec('CREATE TABLE IF NOT EXISTS devices (
-    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    name VARCHAR(160) NOT NULL,
-    api_key VARCHAR(64) NOT NULL UNIQUE,
-    lat DECIMAL(10,6) DEFAULT NULL,
-    lng DECIMAL(10,6) DEFAULT NULL,
-    last_seen INT UNSIGNED DEFAULT NULL,
-    status ENUM("online","offline") DEFAULT "offline",
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id)
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
-
-  $pdo->exec('CREATE TABLE IF NOT EXISTS readings (
-    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    device_id INT UNSIGNED NOT NULL,
-    pm25 DECIMAL(8,3) DEFAULT NULL,
-    pm10 DECIMAL(8,3) DEFAULT NULL,
-    co DECIMAL(10,4) DEFAULT NULL,
-    no2 DECIMAL(8,3) DEFAULT NULL,
-    raw JSON DEFAULT NULL,
-    created_at INT UNSIGNED NOT NULL,
-    PRIMARY KEY (id),
-    INDEX (device_id)
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
-
-  $pdo->exec('CREATE TABLE IF NOT EXISTS sensor_data (
-    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    mq135 DOUBLE DEFAULT NULL,
-    dust DOUBLE DEFAULT NULL,
-    created_at INT UNSIGNED NOT NULL DEFAULT 0,
-    PRIMARY KEY (id),
-    INDEX (created_at)
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
-
-  $pdo->exec('CREATE TABLE IF NOT EXISTS alerts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    device_id INT NOT NULL,
-    reading_id BIGINT DEFAULT NULL,
-    pollutant VARCHAR(16) DEFAULT NULL,
-    value DOUBLE DEFAULT NULL,
-    unit VARCHAR(16) DEFAULT NULL,
-    level VARCHAR(32) NOT NULL,
-    icon VARCHAR(8) DEFAULT NULL,
-    color VARCHAR(32) DEFAULT NULL,
-    message TEXT,
-    lat DOUBLE DEFAULT NULL,
-    lng DOUBLE DEFAULT NULL,
-    created_at INT NOT NULL,
-    read_at INT DEFAULT NULL,
-    resolved_at INT DEFAULT NULL,
-    INDEX (created_at),
-    INDEX (device_id),
-    INDEX (pollutant)
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+  ensure_project_schema($pdo);
 }
 
 try{

@@ -1,0 +1,4 @@
+database/*.sqlite
+database/*.sqlite-*
+database/sqlite-migration-report.json
+database-backups/*.sql

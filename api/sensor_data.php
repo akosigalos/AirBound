@@ -3,6 +3,7 @@ require_once __DIR__ . '/config.php';
 header('Content-Type: application/json');
 
 try {
+  if (!database_is_sqlite()) {
   $pdo->exec('CREATE TABLE IF NOT EXISTS sensor_data (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     mq2 DOUBLE DEFAULT NULL,
@@ -15,6 +16,7 @@ try {
 
   try { $pdo->exec('ALTER TABLE sensor_data ADD COLUMN mq2 DOUBLE DEFAULT NULL'); } catch (Exception $e) {}
   try { $pdo->exec('ALTER TABLE sensor_data ADD COLUMN mq135 DOUBLE DEFAULT NULL'); } catch (Exception $e) {}
+  }
 
   $start = isset($_GET['start']) && is_numeric($_GET['start']) ? intval($_GET['start']) : null;
   $end = isset($_GET['end']) && is_numeric($_GET['end']) ? intval($_GET['end']) : null;

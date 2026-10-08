@@ -1,31 +1,55 @@
 <?php
-// DB config — update if needed. Supports environment variables and falls back to a working local database.
+// DB config — MySQL remains the default. Set DATABASE_DRIVER=sqlite explicitly to opt in.
 $APP_TIMEZONE = getenv('APP_TIMEZONE') ?: 'Asia/Manila';
 date_default_timezone_set($APP_TIMEZONE);
 
+$DATABASE_DRIVER = strtolower(getenv('DATABASE_DRIVER') ?: 'mysql');
+if (!in_array($DATABASE_DRIVER, ['mysql', 'sqlite'], true)) {
+  http_response_code(500);
+  echo json_encode(['success'=>false, 'error'=>'Unsupported DATABASE_DRIVER']);
+  exit;
+}
 $DB_HOST = getenv('DB_HOST') ?: '127.0.0.1';
 $DB_NAME = getenv('DB_NAME') ?: 'airbound_app';
 $DB_USER = getenv('DB_USER') ?: 'root';
 $DB_PASS = getenv('DB_PASS') ?: '';
+$SQLITE_PATH = getenv('SQLITE_PATH') ?: dirname(__DIR__) . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'airbound.sqlite';
 
-$attemptedDbNames = array_values(array_unique([$DB_NAME, 'airbound_app', 'airbound', 'iotairbound']));
 $pdo = null;
 $lastException = null;
 
-foreach ($attemptedDbNames as $candidateDbName) {
+if ($DATABASE_DRIVER === 'sqlite') {
   try {
-    $pdo = new PDO("mysql:host=$DB_HOST;dbname=$candidateDbName;charset=utf8mb4", $DB_USER, $DB_PASS, [
+    // Do not silently create a database during normal application requests.
+    if (!is_file($SQLITE_PATH)) {
+      throw new RuntimeException('SQLite database not found. Run tools/migrate_mysql_to_sqlite.php --run first.');
+    }
+    $pdo = new PDO('sqlite:' . $SQLITE_PATH, null, null, [
       PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
       PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
-    $DB_NAME = $candidateDbName;
-    break;
+    $pdo->exec('PRAGMA foreign_keys = ON');
+    $DB_NAME = basename($SQLITE_PATH);
   } catch (Exception $e) {
     $lastException = $e;
   }
+} else {
+  $attemptedDbNames = array_values(array_unique([$DB_NAME, 'airbound_app', 'airbound', 'iotairbound']));
+  foreach ($attemptedDbNames as $candidateDbName) {
+    try {
+      $pdo = new PDO("mysql:host=$DB_HOST;dbname=$candidateDbName;charset=utf8mb4", $DB_USER, $DB_PASS, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+      ]);
+      $DB_NAME = $candidateDbName;
+      break;
+    } catch (Exception $e) {
+      $lastException = $e;
+    }
+  }
 }
 
-if (!$pdo) {
+if (!$pdo && $DATABASE_DRIVER === 'mysql') {
   try {
     $adminPdo = new PDO("mysql:host=$DB_HOST;charset=utf8mb4", $DB_USER, $DB_PASS, [
       PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -47,6 +71,11 @@ if (!$pdo) {
 }
 
 function ensure_project_schema(PDO $pdo): void {
+  global $DATABASE_DRIVER;
+  if ($DATABASE_DRIVER === 'sqlite') {
+    // The migration tool creates the SQLite schema before the application can open it.
+    return;
+  }
   $pdo->exec('CREATE TABLE IF NOT EXISTS users (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(160) NOT NULL,
@@ -132,6 +161,15 @@ function ensure_project_schema(PDO $pdo): void {
 }
 
 ensure_project_schema($pdo);
+
+function database_is_sqlite(): bool {
+  global $DATABASE_DRIVER;
+  return $DATABASE_DRIVER === 'sqlite';
+}
+
+function database_datetime_from_unix_sql(): string {
+  return database_is_sqlite() ? "datetime(?, 'unixepoch')" : 'FROM_UNIXTIME(?)';
+}
 
 function send_json($arr){
   header('Content-Type: application/json');
